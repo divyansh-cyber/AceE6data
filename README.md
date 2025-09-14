@@ -1,71 +1,66 @@
-
-
-````markdown
 # AI-Powered MySQL Observability CLI
 
-A command-line tool that provides AI-driven MySQL performance analysis and optimization recommendations using Google Gemini Pro. It analyzes queries, detects performance bottlenecks, and suggests improvements.
+A command-line tool for real-time MySQL performance monitoring and AI-powered query optimization using Google Gemini Pro.
 
-## Features
-- **Real-time Metrics Monitoring** – Tracks key MySQL performance indicators.
-- **AI-Powered Query Analysis** – Identifies slow queries and root causes.
-- **Index Recommendations** – Suggests indexes to improve query performance.
-- **Query Optimization** – Provides rewritten queries for better efficiency.
-- **Anomaly Detection** – Detects unusual database behavior.
-- **Interactive Q&A** – Ask natural language questions about performance issues.
+## Key Features
+
+* **Live Metrics Monitoring** – Tracks key MySQL performance indicators
+* **AI Query Analysis** – Identifies slow queries, bottlenecks, and suggests fixes
+* **Index Recommendations** – Proposes optimal indexes to improve performance
+* **Anomaly Detection** – Uses ML to detect unusual database patterns
+* **Context-Aware Assistant** – Ask natural language questions about performance
 
 ## Prerequisites
-- Python 3.7+
-- MySQL Server (running locally or remotely)
-- Google Gemini Pro API Key
-- Terminal/Command Line Access
+
+* Python 3.7+
+* MySQL Server (running locally or remotely)
+* Google Gemini API key
 
 ## Quick Start
-1. **Clone Repository**
+
+1. **Clone and Install**
+
    ```bash
-   git clone https://github.com/your-repo/ai-mysql-observability.git
+   git clone https://github.com/yourusername/ai-mysql-observability.git
    cd ai-mysql-observability
-````
-
-2. **Install Dependencies**
-
-   ```bash
    pip install -r requirements.txt
    ```
 
-3. **Configure**
+2. **Configure**
+   Copy the template and add credentials:
 
    ```bash
    cp config.template.json config.json
-   # Edit config.json with your MySQL credentials and Gemini API key
    ```
 
-4. **Test Setup**
+   Edit `config.json` with:
+
+   * Your MySQL username, password, and database
+   * Your Gemini API key
+
+3. **Test Connection**
 
    ```bash
    python test_mysql_connection.py
-   python setup_gemini.py
    ```
 
-5. **Run Analysis**
+4. **Run the Tool**
 
    ```bash
-   python p3cli.py --analyze-queries
-   python p3cli.py --ask "Which queries are slow?"
+   python p3cli.py --monitor          # Monitor metrics
+   python p3cli.py --analyze-queries  # AI query analysis
+   python p3cli.py --ask "Top slow queries?"
    ```
 
 ## Troubleshooting
 
-* Ensure MySQL is running and credentials in `config.json` are correct.
-* Test connection with:
-
-  ```bash
-  python test_mysql_connection.py
-  ```
-* If API errors occur, verify your Gemini API key.
+* **MySQL Error**: Verify server is running and credentials are correct.
+* **Gemini Error**: Check API key in `config.json` and test with `python setup_gemini.py`.
+* **Missing Modules**: Run `pip install -r requirements.txt`.
 
 ## Security Notes
 
-* Do **not** commit `config.json` to source control.
-* Keep API keys and passwords secure.
+* Keep `config.json` private (never commit to version control).
+* Use strong database passwords and secure your API keys.
 
-
+**Happy Database Optimizing! **
