@@ -1,4 +1,4 @@
-Here’s a **clean, formal, and concise** version you can directly use in your `README.md`:
+
 
 ````markdown
 # AI-Powered MySQL Observability CLI
