@@ -68,8 +68,4 @@ A command-line tool that provides AI-driven MySQL performance analysis and optim
 * Do **not** commit `config.json` to source control.
 * Keep API keys and passwords secure.
 
-## License
 
-MIT License – see [LICENSE](LICENSE) for details.
-
-```
