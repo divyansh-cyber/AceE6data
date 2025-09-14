@@ -562,6 +562,18 @@ Examples:
     tool.save_metrics(current_metrics)
     
     if args.monitor:
+        print("Collecting 100 MySQL metrics samples...")
+        for i in range(100):
+                 current_metrics = tool.collect_metrics()
+                 if not current_metrics:
+                   print("MySQL connection failed. Switching to demo mode...")
+                   current_metrics = tool.collect_metrics(demo_mode=True)
+                 if not current_metrics:
+                    print("Failed to collect metrics even in demo mode.")
+                    sys.exit(1)
+                 tool.save_metrics(current_metrics)
+
+        # Show only the last collected datapoint
         tool.display_metrics(current_metrics)
     
     if args.analyze:
