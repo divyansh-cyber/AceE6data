@@ -63,4 +63,3 @@ A command-line tool for real-time MySQL performance monitoring and AI-powered qu
 * Keep `config.json` private (never commit to version control).
 * Use strong database passwords and secure your API keys.
 
-**Happy Database Optimizing! **
