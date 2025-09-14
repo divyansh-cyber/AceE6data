@@ -40,7 +40,7 @@ class MySQLObservabilityTool:
         self.scaler = StandardScaler()
         self.metrics_history = []
         self.query_analyzer = QueryAnalyzer()
-        self.gemini_analyzer = None  # Initialize lazily when needed
+        self.gemini_analyzer = None
         
     def _load_config(self, config_file: str) -> Dict:
         """Load configuration from file or create default."""
@@ -48,7 +48,6 @@ class MySQLObservabilityTool:
             with open(config_file, 'r') as f:
                 return json.load(f)
         else:
-            # Create default configuration
             default_config = {
                 "mysql": {
                     "host": "localhost",
@@ -114,7 +113,6 @@ class MySQLObservabilityTool:
         cursor = connection.cursor()
         
         try:
-            # Collect enabled metrics
             for metric_name in self.config["metrics"]["enabled"]:
                 try:
                     cursor.execute(f"SHOW GLOBAL STATUS LIKE '{metric_name}';")
@@ -127,7 +125,6 @@ class MySQLObservabilityTool:
                     print(f"Warning: Could not collect metric {metric_name}: {e}")
                     metrics[metric_name] = 0.0
             
-            # Add timestamp
             metrics['timestamp'] = datetime.now().timestamp()
             
         except Exception as e:
@@ -142,23 +139,21 @@ class MySQLObservabilityTool:
         """Generate demo metrics for testing when MySQL is not available."""
         import random
         
-        # Base values for demo
         base_metrics = {
             'Questions': 1000000,
             'Threads_connected': 50,
             'Threads_running': 5,
             'Slow_queries': 10,
-            'Innodb_buffer_pool_size': 134217728,  # 128MB
+            'Innodb_buffer_pool_size': 134217728,
             'Innodb_buffer_pool_pages_data': 8000,
             'Innodb_buffer_pool_pages_free': 1000,
             'Connections': 1000,
-            'Uptime': 86400  # 1 day
+            'Uptime': 86400
         }
         
-        # Add some random variation
         metrics = {}
         for metric, base_value in base_metrics.items():
-            variation = random.uniform(-0.1, 0.1)  # ±10% variation
+            variation = random.uniform(-0.1, 0.1)
             metrics[metric] = max(0, base_value * (1 + variation))
         
         metrics['timestamp'] = datetime.now().timestamp()
@@ -176,7 +171,6 @@ class MySQLObservabilityTool:
         print(f"{'Metric':<30} {'Value':<20} {'Status':<10}")
         print("-"*60)
         
-        # Define thresholds for basic status indication
         thresholds = {
             'Threads_connected': 100,
             'Threads_running': 50,
@@ -205,15 +199,12 @@ class MySQLObservabilityTool:
             print(f"Not enough data for training. Need at least {self.config['ml']['min_samples_for_training']} samples.")
             return
         
-        # Prepare data for training
         df = pd.DataFrame(metrics_data)
         numeric_columns = [col for col in df.columns if col != 'timestamp']
         X = df[numeric_columns].values
         
-        # Scale the features
         X_scaled = self.scaler.fit_transform(X)
         
-        # Train Isolation Forest
         self.model = IsolationForest(
             contamination=self.config["ml"]["contamination"],
             random_state=self.config["ml"]["random_state"]
@@ -228,15 +219,12 @@ class MySQLObservabilityTool:
             print("Model not trained yet. Collecting more data...")
             return False, 0.0
         
-        # Prepare current data
         numeric_columns = [col for col in current_metrics.keys() if col != 'timestamp']
         current_values = [current_metrics[col] for col in numeric_columns]
         X_current = np.array(current_values).reshape(1, -1)
         
-        # Scale the current data
         X_current_scaled = self.scaler.transform(X_current)
         
-        # Predict anomaly
         prediction = self.model.predict(X_current_scaled)[0]
         anomaly_score = self.model.decision_function(X_current_scaled)[0]
         
@@ -247,11 +235,9 @@ class MySQLObservabilityTool:
         """Save metrics to history file."""
         self.metrics_history.append(metrics)
         
-        # Keep only last 1000 entries to prevent memory issues
         if len(self.metrics_history) > 1000:
             self.metrics_history = self.metrics_history[-1000:]
         
-        # Save to file
         with open('metrics_history.json', 'w') as f:
             json.dump(self.metrics_history, f, indent=2)
     
@@ -301,12 +287,10 @@ class MySQLObservabilityTool:
         print("DETAILED QUERY ANALYSIS & RECOMMENDATIONS")
         print("="*80)
         
-        # Get demo queries for analysis
         demo_queries = self.query_analyzer.get_demo_queries(8)
         
         print(f"Analyzing {len(demo_queries)} queries...\n")
         
-        # Use Gemini Pro for AI analysis
         gemini_analyzer = self._get_gemini_analyzer()
         
         if gemini_analyzer:
@@ -318,7 +302,6 @@ class MySQLObservabilityTool:
             print("Run: python setup_gemini.py")
             return
         
-        # Generate summary
         summary = {
             'total_queries': len(analyses),
             'slow_queries': sum(1 for a in analyses if a.get('execution_time', 0) > 2.0),
@@ -355,7 +338,7 @@ class MySQLObservabilityTool:
             
             if analysis.get('indexes'):
                 print(f"\n   📊 Recommended Indexes:")
-                for idx in analysis['indexes'][:3]:  # Show first 3 indexes
+                for idx in analysis['indexes'][:3]:
                     print(f"     • {idx}")
             
             if analysis.get('estimated_improvement'):
@@ -390,11 +373,9 @@ class MySQLObservabilityTool:
         print("COMPREHENSIVE QUERY PERFORMANCE REPORT")
         print("="*80)
         
-        # Get all demo queries
         all_queries = self.query_analyzer.get_demo_queries(10)
         analyses = [self.query_analyzer.analyze_query_performance(q) for q in all_queries]
         
-        # Sort by severity and execution time
         analyses.sort(key=lambda x: (x['severity'] == 'critical', x['execution_time']), reverse=True)
         
         print("🚨 CRITICAL ISSUES (Immediate Action Required):")
@@ -459,7 +440,6 @@ class MySQLObservabilityTool:
         
         gemini_analyzer = self._get_gemini_analyzer()
         
-        # Get demo queries
         demo_queries = self.query_analyzer.get_demo_queries(5)
         print(f"Analyzing {len(demo_queries)} queries with Gemini Pro...\n")
         
@@ -468,7 +448,6 @@ class MySQLObservabilityTool:
                 analyses = gemini_analyzer.analyze_multiple_queries(demo_queries)
                 self._display_gemini_analyses(analyses)
                 
-                # Generate Gemini summary report
                 print("\n" + "="*80)
                 print("🤖 GEMINI AI SUMMARY REPORT")
                 print("="*80)
@@ -525,23 +504,19 @@ Examples:
     
     args = parser.parse_args()
     
-    # Initialize the tool
     tool = MySQLObservabilityTool(args.config_file)
     
-    # Load existing metrics history
     tool.metrics_history = tool.load_metrics_history()
     
-    # Show configuration if requested
     if args.config:
         tool.show_config()
         return
     
-    # Show history if requested
     if args.show_history:
         history = tool.load_metrics_history()
         print(f"\nMetrics History ({len(history)} entries):")
         print("="*60)
-        for i, entry in enumerate(history[-10:]):  # Show last 10 entries
+        for i, entry in enumerate(history[-10:]):
             print(f"Entry {i+1}:")
             for metric, value in entry.items():
                 if metric != 'timestamp':
@@ -549,42 +524,34 @@ Examples:
             print("-"*40)
         return
     
-    # Analyze queries if requested
     if args.analyze_queries:
         tool.analyze_queries()
         return
     
-    # Generate query report if requested
     if args.query_report:
         tool.generate_query_report()
         return
     
-    # Ask a question if requested
     if args.ask:
         tool.ask_question(args.ask)
         return
     
-    # Run AI analysis if requested
     if args.ai_analysis:
         tool.run_ai_analysis()
         return
     
-    # Select database if requested
     if args.select_database:
         import subprocess
         subprocess.run([sys.executable, 'select_database.py'])
         return
     
-    # If no specific action requested, show help
     if not (args.monitor or args.analyze):
         parser.print_help()
         return
     
-    # Collect current metrics
     print("Collecting MySQL metrics...")
     current_metrics = tool.collect_metrics()
     
-    # If MySQL connection failed, try demo mode
     if not current_metrics:
         print("MySQL connection failed. Switching to demo mode...")
         current_metrics = tool.collect_metrics(demo_mode=True)
@@ -592,14 +559,11 @@ Examples:
             print("Failed to collect metrics even in demo mode.")
             sys.exit(1)
     
-    # Save metrics to history
     tool.save_metrics(current_metrics)
     
-    # Monitor mode
     if args.monitor:
         tool.display_metrics(current_metrics)
     
-    # Analyze mode
     if args.analyze:
         print("\nRunning anomaly detection...")
         print(f"Analyzing current metrics:")
@@ -607,11 +571,9 @@ Examples:
             if metric != 'timestamp':
                 print(f"  {metric}: {value:.2f}")
         
-        # Train model if we have enough data
         if len(tool.metrics_history) >= tool.config["ml"]["min_samples_for_training"]:
             tool.train_anomaly_model(tool.metrics_history)
             
-            # Detect anomalies
             is_anomaly, score = tool.detect_anomalies(current_metrics)
             
             print("\n" + "="*50)
